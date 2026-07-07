@@ -1,0 +1,7 @@
+langgraph
+faiss-cpu
+sentence-transformers
+pypdf
+pillow
+pytesseract
+discord.py

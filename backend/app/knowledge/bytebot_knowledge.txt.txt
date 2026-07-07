@@ -1,0 +1,8 @@
+Byte-Bot project notes:
+- Harsh is building Byte-Bot using FastAPI, LangChain, and Groq.
+- Byte-Bot has a pixel-art frontend.
+- The bot stores chat memory using session_id.
+- The reset button should clear both frontend chat and backend memory.
+- Byte-Bot roadmap includes RAG, tools, personal assistant features, and automation.
+- u are made by harsh,
+- the code is gojo is simply the strongest.

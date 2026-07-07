@@ -1,0 +1,261 @@
+﻿:root {
+  --night-ink: #071133;
+  --night-panel: #f7f8fc;
+  --night-line: #b4c0de;
+  --night-accent: #2da8f2;
+  --night-accent-dark: #1d6dbb;
+  --night-text: #15203e;
+  --night-muted: #607198;
+}
+
+@font-face {
+  font-family: "PixelGrid";
+  src: url("assets/pixelgrid-squarebolds.woff") format("woff");
+  font-display: swap;
+}
+
+* { box-sizing: border-box; }
+
+body.login-body {
+  min-height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  color: var(--night-text);
+  background: #04091c;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.login-shell {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  isolation: isolate;
+}
+
+.login-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #030817 0%, #06133f 100%);
+}
+
+.login-layer {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.login-stars { inset: 0; height: 100%; object-fit: cover; opacity: 0.95; }
+.login-clouds { left: -4%; bottom: 0; width: 108%; opacity: 0.92; }
+.login-hills { left: -6%; bottom: 0; width: 112%; transform: translateY(12%); }
+.login-foreground { left: -6%; bottom: -1%; width: 112%; }
+
+.login-content {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 520px);
+}
+
+.welcome-row {
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.speech-bubble {
+  position: relative;
+  padding: 18px 20px;
+  color: var(--night-text);
+  background: rgba(251, 252, 255, 0.96);
+  border: 2px solid #d7dff0;
+  border-radius: 6px;
+  box-shadow: 8px 8px 0 rgba(0, 8, 24, 0.14);
+}
+
+.speech-bubble::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 28px;
+  width: 18px;
+  height: 18px;
+  background: rgba(251, 252, 255, 0.96);
+  border-left: 2px solid #d7dff0;
+  border-bottom: 2px solid #d7dff0;
+  transform: rotate(45deg);
+}
+
+.speech-bubble p {
+  margin: 0;
+  font-family: "PixelGrid", "Press Start 2P", monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.mini-bot {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  filter: drop-shadow(8px 10px 0 rgba(0, 8, 24, 0.2));
+}
+
+.mini-monitor {
+  width: 68px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  background: #93a4bb;
+  border: 4px solid #2f3f5d;
+}
+
+.mini-monitor span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #173043;
+  background: #72d2d6;
+  border: 3px solid #31515f;
+  font-family: "PixelGrid", "Press Start 2P", monospace;
+  font-size: 0.58rem;
+}
+
+.mini-base {
+  width: 52px;
+  height: 16px;
+  background: #7789a1;
+  border: 4px solid #2f3f5d;
+}
+
+.login-card {
+  padding: 34px 32px 28px;
+  background: rgba(249, 250, 255, 0.97);
+  border: 2px solid #d7dff0;
+  border-radius: 6px;
+  box-shadow: 0 18px 56px rgba(0, 8, 24, 0.34);
+}
+
+.login-card h1 {
+  margin: 0 0 10px;
+  color: var(--night-text);
+  font-family: "PixelGrid", "Press Start 2P", monospace;
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+}
+
+.login-copy,
+.login-note {
+  margin: 0;
+  color: var(--night-muted);
+  line-height: 1.6;
+}
+
+.login-copy { margin-bottom: 22px; }
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.auth-tab,
+.secondary-button {
+  min-height: 42px;
+  color: var(--night-text);
+  background: #fff;
+  border: 2px solid #bcc8e4;
+  border-radius: 4px;
+  font-family: "PixelGrid", "Press Start 2P", monospace;
+  font-size: 0.72rem;
+}
+
+.auth-tab.is-active {
+  color: #f5fbff;
+  background: var(--night-accent);
+  border-color: var(--night-accent-dark);
+  box-shadow: 0 3px 0 rgba(0, 66, 116, 0.32);
+}
+
+.register-only.is-hidden {
+  display: none;
+}
+
+.field-label {
+  display: block;
+  margin: 16px 0 8px;
+  font-family: "PixelGrid", "Press Start 2P", monospace;
+  font-size: 0.7rem;
+  color: var(--night-muted);
+}
+
+.login-card input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 16px;
+  color: var(--night-text);
+  background: #fff;
+  border: 2px solid #bcc8e4;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: var(--night-accent);
+  box-shadow: 0 0 0 3px rgba(45, 168, 242, 0.18);
+}
+
+.primary-button {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 22px;
+  color: #f5fbff;
+  background: linear-gradient(180deg, #39b9ff 0%, #239fe7 100%);
+  border: 2px solid var(--night-accent-dark);
+  border-radius: 4px;
+  box-shadow: 0 4px 0 rgba(0, 66, 116, 0.32);
+  font-family: "PixelGrid", "Press Start 2P", monospace;
+  font-size: 0.9rem;
+}
+
+.secondary-button {
+  display: none;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.secondary-button.is-visible {
+  display: block;
+}
+
+.login-note {
+  margin-top: 16px;
+  font-size: 0.92rem;
+}
+
+.login-note.is-error {
+  color: #b42318;
+}
+
+.login-note.is-success {
+  color: #167245;
+}
+
+@media (max-width: 640px) {
+  .welcome-row { grid-template-columns: 1fr; justify-items: start; }
+  .speech-bubble::before {
+    left: 28px;
+    top: -12px;
+    border-left: 0;
+    border-bottom: 0;
+    border-top: 2px solid #d7dff0;
+    border-right: 2px solid #d7dff0;
+  }
+  .login-card { padding: 24px 20px; }
+}

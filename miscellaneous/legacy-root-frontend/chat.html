@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Byte-Bot Chat UI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="pixel-stage" aria-label="Animated chatbot scene">
+      <div class="asset-scene" aria-hidden="true">
+        <img class="scene-layer scene-night" src="assets/github-copilots.gif" alt="">
+        <!-- OLD UI HERE: old layered scene kept for rollback/reference.
+        <img class="scene-layer scene-sky" src="assets/landing-sky.webp" alt="">
+        <img class="scene-layer scene-mountain" src="assets/landing-mountain.webp" alt="">
+        <img class="scene-layer scene-hills" src="assets/landing-hills.webp" alt="">
+        <img class="scene-layer scene-grass" src="assets/landing-grass.webp" alt="">
+        -->
+      </div>
+      <div class="hero-copy">
+        <p class="eyebrow">your pixel companion</p>
+        <h1>Byte-Bot</h1>
+        <p>A cozy AI friend for chatting, learning, and remembering your sessions.</p>
+      </div>
+      <button class="bot-card hero-bot-button" id="heroBotButton" type="button" aria-label="Open Byte-Bot chat" aria-live="polite">
+        <div class="computer-bot" id="computerBot" data-state="idle">
+          <div class="antenna"></div>
+          <div class="monitor"><div class="screen"><span id="botFace">uwu</span></div></div>
+          <div class="neck"></div>
+          <div class="base"></div>
+        </div>
+        <div class="status-panel"><span class="status-dot"></span><p id="botMood">idle and listening</p></div>
+        <span class="bot-card-hint">click to chat</span>
+      </button>
+    </section>
+    <section class="chat-layout" id="chatSection" aria-label="Chatbot demo">
+      <aside class="profile-panel">
+        <div class="profile-chip">LVL 1</div>
+        <h2>Companion Settings</h2>
+        <p id="sessionLabel">Local session: guest</p>
+        <p>Fixed personality: cute, curious, calm, and fond of anime-style emoticons.</p>
+        <div class="mood-list" aria-label="Bot personality traits"><span>soft</span><span>curious</span><span>helpful</span><span>pixel</span></div>
+        <div class="profile-mini-bot-wrap" aria-hidden="true">
+          <div class="computer-bot profile-mini-bot" data-state="idle">
+            <div class="antenna"></div>
+            <div class="monitor"><div class="screen"><span id="profileBotFace">uwu</span></div></div>
+            <div class="neck"></div>
+            <div class="base"></div>
+          </div>
+          <div class="status-panel profile-status-panel"><span class="status-dot"></span><p id="profileBotMood">idle and listening</p></div>
+        </div>
+      </aside>
+      <section class="chat-panel">
+        <header class="chat-header">
+          <div><p class="eyebrow">live chat</p><h2>Talk to Byte-Bot</h2></div>
+          <button class="icon-button" id="resetChat" type="button" aria-label="Reset chat">R</button>
+        </header>
+        <div class="messages is-empty" id="messages" aria-live="polite">
+          <button class="chat-companion" id="chatCompanion" type="button" aria-label="Ask Byte-Bot for a nudge" title="Ask Byte-Bot"><img id="companionImage" src="assets/coding-window.gif" alt=""></button>
+          <article class="message bot-message"><div class="message-avatar">uwu</div><div class="bubble"><p id="introMessage">Hi! I am Byte-Bot. I am ready to remember our session and chat through the FastAPI backend. uwu</p></div></article>
+        </div>
+        <div class="quick-prompts" aria-label="Example prompts"><button type="button" data-prompt="What can you do?">What can you do?</button><button type="button" data-prompt="Show your happy face">Happy face</button><button type="button" data-prompt="What do you remember about this session?">Memory check</button></div>
+        <section class="tool-dock" aria-label="Future Byte-Bot tools">
+          <button class="tool-tile upload-tile" id="uploadToolButton" type="button">
+            <img src="assets/upload-toolkit.png" alt="">
+            <span>Upload docs</span>
+            <small>PDF CSV TXT</small>
+          </button>
+          <button class="tool-tile image-tool-tile" id="webSearchButton" type="button">
+            <img src="assets/web-search-tool.png" alt="">
+            <span>Web search</span>
+            <small>SerpApi</small>
+          </button>
+          <button class="tool-tile" id="imageSearchButton" type="button"><span>Image search</span><small>Google Images</small></button>
+          <button class="tool-tile image-tool-tile" id="voiceOutputToggle" type="button" aria-pressed="false">
+            <img src="assets/voice-output-tool.png" alt="">
+            <span>Voice output</span>
+            <small id="voiceOutputState">Off</small>
+          </button>
+          <button class="tool-tile image-tool-tile" id="voiceToolButton" type="button">
+            <img src="assets/voice-search-tool.png" alt="">
+            <span>Voice input</span>
+            <small>Whisper later</small>
+          </button>
+          <input class="sr-only" id="knowledgeFileInput" type="file" accept=".pdf,.csv,.txt,.md,.png,.jpg,.jpeg,.webp,.gif,.mp3,.wav,.m4a,.webm,.ogg">
+          <p class="tool-status" id="toolStatus">Tools are optional. Chat works without them.</p>
+        </section>
+        <form class="composer" id="chatForm"><label class="sr-only" for="messageInput">Message</label><input id="messageInput" name="message" type="text" autocomplete="off" placeholder="Message Byte-Bot..." maxlength="240"><button type="submit" aria-label="Send message">Send</button></form>
+      </section>
+    </section>
+  </main>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+# Secrets
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local virtual environments
+.venv/
+backend/.venv/
+venv/
+
+# Runtime files
+backend/storage/logs/
+backend/storage/uploads/
+storage/
+*.log
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# OS/editor temporary files
+.DS_Store
+Thumbs.db
+~$*
+*.tmp
+
+# Generated inspection files
+*.inspect.ndjson

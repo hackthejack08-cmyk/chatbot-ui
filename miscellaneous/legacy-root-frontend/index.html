@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Byte-Bot Login</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body class="login-body">
+  <main class="login-shell">
+    <div class="login-scene" aria-hidden="true">
+      <img class="login-layer login-stars" src="assets/night-stars.png" alt="">
+      <img class="login-layer login-clouds" src="assets/night-clouds.webp" alt="">
+      <img class="login-layer login-hills" src="assets/night-hills.webp" alt="">
+      <img class="login-layer login-foreground" src="assets/night-foreground.webp" alt="">
+    </div>
+    <section class="login-content" aria-label="Byte-Bot sign in">
+      <div class="welcome-row">
+        <div class="mini-bot" aria-hidden="true">
+          <div class="mini-monitor"><span>uwu</span></div>
+          <div class="mini-base"></div>
+        </div>
+        <div class="speech-bubble">
+          <p>Create an account to save your Byte-Bot memory.</p>
+        </div>
+      </div>
+      <form id="loginForm" class="login-card">
+        <h1>Enter Byte-Bot</h1>
+        <p class="login-copy">Register or login with the FastAPI backend. MongoDB stores users and chat memory when configured.</p>
+        <div class="auth-tabs" role="tablist" aria-label="Choose login or registration">
+          <button class="auth-tab is-active" type="button" data-auth-mode="login">Login</button>
+          <button class="auth-tab" type="button" data-auth-mode="register">Register</button>
+        </div>
+        <label class="field-label register-only is-hidden" for="name">Name</label>
+        <input class="register-only is-hidden" id="name" name="name" type="text" placeholder="Harsh" autocomplete="name">
+        <label class="field-label" for="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="harsh@example.com" autocomplete="email" required>
+        <label class="field-label" for="password">Password</label>
+        <input id="password" name="password" type="password" placeholder="At least 8 characters" autocomplete="current-password" required>
+        <button type="submit" class="primary-button">Sign In To Byte-Bot</button>
+        <button id="localDemoButton" class="secondary-button" type="button">Continue Local Demo</button>
+        <p id="authStatus" class="login-note">Checking backend auth settings...</p>
+      </form>
+    </section>
+  </main>
+  <script src="config.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>

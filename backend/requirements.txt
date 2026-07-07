@@ -1,0 +1,17 @@
+fastapi[standard]
+uvicorn
+python-dotenv
+langchain-groq
+langchain-core
+motor
+bcrypt
+PyJWT
+email-validator
+certifi
+serpapi
+langchain-community
+langchain-text-splitters
+pypdf
+beautifulsoup4
+openai
+python-multipart
