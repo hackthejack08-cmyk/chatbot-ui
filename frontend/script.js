@@ -167,7 +167,7 @@ function openFilePicker(toolMode) {
 
   knowledgeFileInput.dataset.toolMode = toolMode;
   knowledgeFileInput.accept = toolMode === "voice"
-    ? ".mp3,.wav,.m4a,.webm,.ogg"
+    ? ".mp3,.wav,.m4a,.webm,.ogg,.flac,.aac,.mp4,.mpeg,.mpga"
     : ".pdf,.csv,.txt,.md,.png,.jpg,.jpeg,.webp,.gif";
   knowledgeFileInput.value = "";
   knowledgeFileInput.click();
@@ -204,7 +204,7 @@ async function handlePickedFile() {
     if (toolMode === "voice") {
       const spokenText = responseData.text || "";
       messageTextInput.value = spokenText;
-      showToolStatus("Voice converted into text. Review it, then press Send.", false, true);
+      showToolStatus("Voice converted with local Whisper. Review it, then press Send.", false, true);
       markChatAsStarted();
       addChatMessage("bot", spokenText ? `I heard: ${spokenText}` : "Voice uploaded, but no text came back.");
     } else {

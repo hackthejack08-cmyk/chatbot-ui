@@ -36,6 +36,20 @@ http://127.0.0.1:8010/health
 .\backend\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8010
 ```
 
+## Install / repair local Whisper voice input
+
+Voice input now uses free local Whisper through `faster-whisper`.
+
+```powershell
+.\backend\.venv\Scripts\python.exe -m pip install faster-whisper
+```
+
+The first voice transcription downloads the tiny model once. Accepted voice files:
+
+```text
+.mp3, .wav, .m4a, .webm, .ogg, .flac, .aac, .mp4, .mpeg, .mpga
+```
+
 ## Manual frontend command
 
 Open another PowerShell terminal:

@@ -14,4 +14,5 @@ langchain-text-splitters
 pypdf
 beautifulsoup4
 openai
+faster-whisper
 python-multipart

@@ -22,12 +22,17 @@ UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
 SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+LOCAL_WHISPER_MODEL = os.getenv("LOCAL_WHISPER_MODEL", "tiny")
+LOCAL_WHISPER_DEVICE = os.getenv("LOCAL_WHISPER_DEVICE", "cpu")
+LOCAL_WHISPER_COMPUTE_TYPE = os.getenv("LOCAL_WHISPER_COMPUTE_TYPE", "int8")
+LOCAL_WHISPER_LANGUAGE = os.getenv("LOCAL_WHISPER_LANGUAGE") or None
 
 DOC_EXTENSIONS = {".pdf", ".csv", ".txt", ".md"}
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
-AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".webm", ".ogg"}
+AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".webm", ".ogg", ".flac", ".aac", ".mp4", ".mpeg", ".mpga"}
 
 router = APIRouter(prefix="/tools", tags=["tools"])
+_local_whisper_model = None
 
 
 class SearchRequest(BaseModel):
@@ -199,6 +204,40 @@ def run_serpapi(params: dict[str, Any]) -> dict[str, Any]:
     return dict(client.search(params))
 
 
+def get_local_whisper_model():
+    """Load the free local Whisper model once and reuse it.
+
+    This uses faster-whisper instead of the paid OpenAI Whisper API. The model
+    downloads on first use, then stays cached on this machine.
+    """
+    global _local_whisper_model
+
+    if _local_whisper_model is not None:
+        return _local_whisper_model
+
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError as error:
+        raise HTTPException(
+            status_code=503,
+            detail="Local Whisper is not installed. Run: pip install faster-whisper",
+        ) from error
+
+    try:
+        _local_whisper_model = WhisperModel(
+            LOCAL_WHISPER_MODEL,
+            device=LOCAL_WHISPER_DEVICE,
+            compute_type=LOCAL_WHISPER_COMPUTE_TYPE,
+        )
+    except Exception as error:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Local Whisper model could not load: {error}",
+        ) from error
+
+    return _local_whisper_model
+
+
 def simplify_result(result: dict[str, Any]) -> dict[str, Any]:
     return {
         "title": result.get("title") or result.get("name") or "Untitled result",
@@ -309,12 +348,12 @@ async def upload_knowledge_file(
         return {
             "file_name": safe_name,
             "file_type": "audio",
-            "message": "Audio uploaded. Use /tools/transcribe when OPENAI_API_KEY is configured.",
+            "message": "Audio uploaded. Use /tools/transcribe to convert it with local Whisper.",
         }
 
     raise HTTPException(
         status_code=400,
-        detail="Unsupported file type. Try PDF, CSV, TXT, MD, PNG, JPG, WEBP, GIF, MP3, WAV, M4A, or WEBM.",
+        detail="Unsupported file type. Try PDF, CSV, TXT, MD, PNG, JPG, WEBP, GIF, MP3, WAV, M4A, WEBM, OGG, FLAC, AAC, MP4, MPEG, or MPGA.",
     )
 
 
@@ -342,33 +381,46 @@ async def load_web_page(payload: WebPageRequest):
 
 @router.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
-    if not OPENAI_API_KEY:
+    file_extension = Path(file.filename or "audio.webm").suffix.lower() or ".webm"
+
+    if file_extension not in AUDIO_EXTENSIONS:
         raise HTTPException(
-            status_code=503,
-            detail="OPENAI_API_KEY is missing. Add it to .env before using voice-to-text.",
+            status_code=400,
+            detail="Voice input accepts MP3, WAV, M4A, WEBM, OGG, FLAC, AAC, MP4, MPEG, and MPGA files.",
         )
-
-    try:
-        from openai import OpenAI
-    except ImportError as error:
-        raise HTTPException(
-            status_code=503,
-            detail="Install the openai Python package before using Whisper transcription.",
-        ) from error
-
-    file_extension = Path(file.filename or "audio.webm").suffix or ".webm"
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
         shutil.copyfileobj(file.file, temp_file)
         temp_path = Path(temp_file.name)
 
     try:
-        client = OpenAI(api_key=OPENAI_API_KEY)
-        with temp_path.open("rb") as audio_file:
-            transcription = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file,
-            )
-        return {"text": transcription.text}
+        model = get_local_whisper_model()
+        segments, info = model.transcribe(
+            str(temp_path),
+            beam_size=5,
+            language=LOCAL_WHISPER_LANGUAGE,
+        )
+        transcript_text = " ".join(segment.text.strip() for segment in segments).strip()
+
+        return {
+            "text": transcript_text,
+            "provider": "local faster-whisper",
+            "model": LOCAL_WHISPER_MODEL,
+            "language": getattr(info, "language", None),
+        }
     finally:
         temp_path.unlink(missing_ok=True)
+
+
+# OLD OPENAI WHISPER API VERSION KEPT FOR REFERENCE:
+# This needed a paid OPENAI_API_KEY, so Byte-Bot now uses local faster-whisper
+# above. If you ever want to restore OpenAI Whisper later, this is the shape:
+#
+# from openai import OpenAI
+# client = OpenAI(api_key=OPENAI_API_KEY)
+# with temp_path.open("rb") as audio_file:
+#     transcription = client.audio.transcriptions.create(
+#         model="whisper-1",
+#         file=audio_file,
+#     )
+# return {"text": transcription.text}
