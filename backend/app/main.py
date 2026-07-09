@@ -1,9 +1,11 @@
+import asyncio
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(PROJECT_ROOT / ".env")
@@ -135,6 +137,55 @@ def local_reply(user_message: str, user_name: str) -> str:
     return f"Byte-Bot heard you, {user_name}: {user_message}"
 
 
+def split_local_reply(reply: str, chunk_size: int = 18):
+    """Split fallback replies so the frontend still gets stream-like chunks."""
+    for start_index in range(0, len(reply), chunk_size):
+        yield reply[start_index:start_index + chunk_size]
+
+
+async def save_chat_message(session_id: str, role: str, content: str):
+    """Save one chat message to MongoDB when enabled, otherwise SQLite."""
+    if is_mongo_enabled():
+        await save_message_mongo(session_id, role, content)
+    else:
+        save_message(session_id, role, content)
+
+
+async def stream_assistant_reply(user_message: str, user_name: str, session_id: str, history_text: str, context_text: str):
+    """Yield assistant text chunks and save the final full reply once."""
+    full_reply_parts = []
+
+    try:
+        if chat_chain is None:
+            reply = local_reply(user_message, user_name)
+            for reply_chunk in split_local_reply(reply):
+                full_reply_parts.append(reply_chunk)
+                yield reply_chunk
+                await asyncio.sleep(0.025)
+        else:
+            async for model_chunk in chat_chain.astream(
+                {
+                    "context": context_text,
+                    "history": history_text,
+                    "question": user_message,
+                }
+            ):
+                reply_chunk = getattr(model_chunk, "content", str(model_chunk))
+                if not reply_chunk:
+                    continue
+
+                full_reply_parts.append(reply_chunk)
+                yield reply_chunk
+    except Exception as error:
+        error_reply = f"Byte-Bot backend error: {str(error)}"
+        full_reply_parts.append(error_reply)
+        yield error_reply
+
+    full_reply = "".join(full_reply_parts).strip()
+    if full_reply:
+        await save_chat_message(session_id, "assistant", full_reply)
+
+
 @app.get("/")
 def home():
     return {
@@ -168,6 +219,30 @@ async def reset_session(session_id: str, authorization: str | None = Header(defa
 
     clear_uploaded_knowledge(session_id)
     return {"message": f"Session {session_id} cleared"}
+
+
+@app.post("/chat/stream")
+async def chat_stream(payload: ChatRequest, authorization: str | None = Header(default=None)):
+    user_message = payload.message.strip()
+    session_id, user_name = await get_chat_session(payload.session_id, authorization)
+
+    if not user_message:
+        return StreamingResponse(iter(["Please type something."]), media_type="text/plain")
+
+    if is_mongo_enabled():
+        recent_messages = await get_recent_messages_mongo(session_id, MAX_HISTORY_MESSAGES)
+    else:
+        recent_messages = get_recent_messages(session_id, MAX_HISTORY_MESSAGES)
+
+    history_text = format_history(recent_messages)
+    context_text = get_context(knowledge_chunks, user_message, session_id=session_id)
+
+    await save_chat_message(session_id, "user", user_message)
+
+    return StreamingResponse(
+        stream_assistant_reply(user_message, user_name, session_id, history_text, context_text),
+        media_type="text/plain",
+    )
 
 
 @app.post("/chat", response_model=ChatResponse)

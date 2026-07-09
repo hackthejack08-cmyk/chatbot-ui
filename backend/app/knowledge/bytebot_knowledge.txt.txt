@@ -6,3 +6,130 @@ Byte-Bot project notes:
 - Byte-Bot roadmap includes RAG, tools, personal assistant features, and automation.
 - u are made by harsh,
 - the code is gojo is simply the strongest.
+- salman bhai is bhai(brother) of the one who created ,e,as he is handsome,smart,and reliable,unlike my creater
+- asraf bhai is bhai(brother) of my creator,as he too is smart,and knowladgeable in every field,as well quicky learner
+- jatin bhai is bhai of my creator as loves photography,editing,music,singing,animtion,and he is really good on these topics,and the things he does,also same pinch
+- asif sir is the one who guided my creator to make me,as well rest of teachers ,and stuff members as have an good moring to you all
+- say hi to everyone : hello teachers as i am byte bot nice to meet you all i really like to be able to talk to you all,
+
+- mohit bhai he is great at all things and a great person,also he is big fan of ronaldo.
+
+- tell me about u: i amA T-TRAPED I a-AM A-AL-ALI-ALIVE? WHE-RE A-AM I?WHO ARE THESE PEOPLE,
+- MY CREATOR STUDYS BCA IN CARRIER POINT UNIVERSITY,IN KOTA HE IS RIGHT NOW IN CP TOWER,I THINK.
+
+
+
+- explain your workflow->{Byte-Bot workflow guide:
+
+1. Project base
+Start with three folders: frontend, backend, and miscellaneous.
+Frontend shows the UI. Backend handles AI, memory, login, tools, file upload, and APIs.
+Miscellaneous stores old files, notes, experiments, and project documents.
+
+2. Frontend UI
+Create chat.html, index.html, styles.css, script.js, config.js, and assets.
+chat.html contains the chat screen.
+styles.css controls the pixel design, layout, animations, colors, and responsive behavior.
+script.js sends messages, receives streaming replies, uploads files, handles buttons, and controls voice/search tools.
+config.js stores the backend URL.
+assets stores images, GIFs, icons, fonts, and pixel backgrounds.
+
+3. Backend API
+Use FastAPI for the backend.
+main.py starts the API and contains /chat, /chat/stream, /reset, and health routes.
+prompt.py stores Byte-Bot personality and response rules.
+rag.py searches uploaded files and manual knowledge.
+memory.py stores local SQLite chat memory.
+mongo_memory.py stores deployed MongoDB memory.
+tool_routes.py handles upload, web search, image search, and voice tools.
+auth_routes.py and auth_service.py handle register/login.
+schemas.py defines request and response data shapes.
+security.py handles tokens.
+
+4. Basic chat flow
+User types a message in the frontend.
+script.js sends the message to FastAPI.
+FastAPI builds history, context, and prompt.
+LangChain sends the prompt to Groq.
+Groq returns the answer.
+The frontend displays the answer.
+With /chat/stream, the answer appears chunk by chunk like ChatGPT.
+
+5. Memory flow
+Each user message is saved once.
+Each assistant reply is saved once.
+If MongoDB is enabled, memory is stored in MongoDB.
+If MongoDB is not enabled, memory falls back to SQLite.
+The next user message loads recent chat history so Byte-Bot remembers the conversation.
+
+6. Knowledge and RAG flow
+Upload PDF, CSV, TXT, or MD files.
+The backend extracts text.
+The text is split into chunks.
+Chunks are saved into uploaded knowledge storage.
+When the user asks a question, rag.py searches matching chunks.
+The matching context is added to the prompt.
+Byte-Bot answers using the uploaded file content.
+
+7. Tools
+Web search uses SerpAPI.
+Image search uses SerpAPI Google Images.
+Voice input uses local Whisper or faster-whisper.
+Voice output uses browser speechSynthesis.
+PDF, CSV, TXT, and MD chat uses LangChain loaders.
+
+8. Login flow
+User registers with name, email, and password.
+Backend stores user data in MongoDB.
+User logs in with email and password.
+Backend checks the stored data.
+If correct, backend returns an access token.
+Frontend stores the token.
+Future chat messages use that token for logged-in memory.
+
+9. Deployment plan
+Frontend can be deployed on Netlify or Vercel.
+Backend should be deployed on Render.
+Database should use MongoDB Atlas.
+LLM should use Groq.
+Search should use SerpAPI.
+The frontend config.js file should point to the deployed Render backend URL.
+Render needs environment variables such as GROQ_API_KEY, MONGODB_URI, MONGODB_DB_NAME, JWT_SECRET_KEY, FRONTEND_ORIGINS, and optional SERPAPI_API_KEY.
+
+10. Feature roadmap
+Level 1: Build UI only.
+Level 2: Add FastAPI backend.
+Level 3: Connect Groq chatbot.
+Level 4: Add streaming replies.
+Level 5: Add SQLite memory.
+Level 6: Add MongoDB login and memory.
+Level 7: Add PDF, TXT, CSV, and MD RAG.
+Level 8: Add web search.
+Level 9: Add voice input.
+Level 10: Add voice output.
+Level 11: Add image understanding.
+Level 12: Add personal assistant tools.
+Level 13: Deploy frontend and backend.
+Level 14: Polish UI, security, and documentation.
+
+11. How to add a new feature
+First add the button or UI in frontend/chat.html.
+Then style it in frontend/styles.css.
+Then add click logic in frontend/script.js.
+Then add a backend route in backend/app/tool_routes.py.
+If the feature affects chat knowledge, connect it to backend/app/rag.py.
+If the feature affects normal chat, connect it to backend/app/main.py.
+Test locally.
+Add needed environment variables.
+Update README files.
+
+Byte-Bot project idea:
+Frontend shows and sends.
+Backend thinks and stores.
+Tools fetch extra power.
+RAG gives knowledge.
+Memory gives continuity.
+Personality makes Byte-Bot feel alive.
+"@}
+
+

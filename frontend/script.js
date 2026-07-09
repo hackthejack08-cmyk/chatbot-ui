@@ -35,8 +35,9 @@ const defaultBackendUrl = isLocalFrontend
   ? "http://127.0.0.1:8010"
   : window.location.origin;
 
-const backendUrl = configuredBackendUrl || savedBackendUrl || defaultBackendUrl;
+const backendUrl = configuredBackendUrl || (isLocalFrontend ? defaultBackendUrl : savedBackendUrl || defaultBackendUrl);
 const chatUrl = `${backendUrl}/chat`;
+const streamChatUrl = `${backendUrl}/chat/stream`;
 const resetUrl = `${backendUrl}/reset`;
 const healthUrl = `${backendUrl}/health`;
 const uploadUrl = `${backendUrl}/tools/upload`;
@@ -160,6 +161,65 @@ async function getReplyFromBackend(userMessageText) {
   }
 }
 
+async function streamReplyFromBackend(userMessageText, botMessageRow) {
+  try {
+    const chatResponse = await fetch(streamChatUrl, {
+      method: "POST",
+      headers: getJsonHeaders(),
+      body: JSON.stringify({
+        message: userMessageText,
+        session_id: currentSessionId
+      })
+    });
+
+    if (!chatResponse.ok) {
+      const errorText = await chatResponse.text();
+      throw new Error(errorText || `Backend returned ${chatResponse.status}`);
+    }
+
+    if (!chatResponse.body) {
+      const fallbackReply = await getReplyFromBackend(userMessageText);
+      replaceMessageText(botMessageRow, fallbackReply);
+      return fallbackReply;
+    }
+
+    const streamReader = chatResponse.body.getReader();
+    const textDecoder = new TextDecoder();
+    let fullReplyText = "";
+
+    while (true) {
+      const { value, done } = await streamReader.read();
+
+      if (done) {
+        break;
+      }
+
+      const replyChunk = textDecoder.decode(value, { stream: true });
+      fullReplyText += replyChunk;
+      appendMessageText(botMessageRow, replyChunk);
+    }
+
+    const finalChunk = textDecoder.decode();
+    if (finalChunk) {
+      fullReplyText += finalChunk;
+      appendMessageText(botMessageRow, finalChunk);
+    }
+
+    if (!fullReplyText.trim()) {
+      fullReplyText = "Byte-Bot finished, but no text came back.";
+      replaceMessageText(botMessageRow, fullReplyText);
+    }
+
+    return fullReplyText;
+  } catch (error) {
+    console.error("Byte-Bot streaming error:", error);
+    setBotStatus("backend offline");
+    const errorReply = `Byte-Bot could not stream from the backend at ${backendUrl}. ${error.message}`;
+    replaceMessageText(botMessageRow, errorReply);
+    return errorReply;
+  }
+}
+
 function openFilePicker(toolMode) {
   if (!knowledgeFileInput) {
     return;
@@ -244,7 +304,7 @@ async function getSearchReply(searchType, queryText) {
     }
 
     showToolStatus("Search complete.", false, true);
-    return makeSearchSummary(responseData, searchType);
+    return makeCleanSearchSummary(responseData, searchType);
   } catch (error) {
     console.error("Byte-Bot search tool error:", error);
     showToolStatus(error.message, true);
@@ -297,6 +357,74 @@ function cleanResultText(text, maxLength) {
   return `${compactText.slice(0, maxLength - 3).trim()}...`;
 }
 
+function makeCleanSearchSummary(searchData, searchType) {
+  const results = searchData.results || [];
+  const searchLabel = searchType === "image" ? "Image search" : "Web search";
+  const queryText = cleanSearchText(searchData.query || "your query", 90);
+
+  if (!results.length) {
+    return `${searchLabel}: "${queryText}"\n\nNo useful results came back.`;
+  }
+
+  const strongestResult = results[0] || {};
+  const strongestTitle = cleanSearchText(strongestResult.title || "the first result", 90);
+  const strongestSnippet = cleanSearchText(strongestResult.snippet || "", 165);
+  const topResults = results.slice(0, 3);
+
+  const quickAnswer = searchType === "image"
+    ? `Best visual lead: ${strongestTitle}. Check the source links below before using it.`
+    : strongestSnippet || `Best match: ${strongestTitle}. Check the source links below for details.`;
+
+  const sourceLines = topResults.map((result, index) => {
+    const title = cleanSearchText(result.title || "Untitled result", 82);
+    const site = getReadableLinkHost(result.link || "");
+    const snippet = cleanSearchText(result.snippet || "", 120);
+    const note = snippet ? `\n   Note: ${snippet}` : "";
+    return `${index + 1}. ${title}\n   Site: ${site}${note}`;
+  });
+
+  const linkLines = topResults.map((result, index) => {
+    const link = result.link || "No link available";
+    const imageLine = result.thumbnail ? `\n   Image: ${result.thumbnail}` : "";
+    return `${index + 1}. ${link}${imageLine}`;
+  });
+
+  return `${searchLabel}: "${queryText}"
+
+Quick answer:
+${quickAnswer}
+
+Best sources:
+${sourceLines.join("\n\n")}
+
+Links:
+${linkLines.join("\n")}`;
+}
+
+function cleanSearchText(text, maxLength) {
+  const compactText = String(text)
+    .replace(/Â·|Ã‚Â·/g, "-")
+    .replace(/–|—|Ã¢Â€Â“|Ã¢Â€Â”/g, "-")
+    .replace(/’|Ã¢Â€Â™/g, "'")
+    .replace(/“|”|Ã¢Â€Âœ|Ã¢Â€Â/g, '"')
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (compactText.length <= maxLength) {
+    return compactText;
+  }
+
+  return `${compactText.slice(0, maxLength - 3).trim()}...`;
+}
+
+function getReadableLinkHost(link) {
+  try {
+    return new URL(link).hostname.replace(/^www\./, "");
+  } catch (error) {
+    return "source link";
+  }
+}
+
 function setSendMode(nextMode) {
   selectedSendMode = nextMode;
   updateSendModeButtons();
@@ -344,14 +472,19 @@ async function handleSendMessage(event) {
   messageTextInput.value = "";
   showThinkingMode();
 
-  const typingMessageRow = addTypingMessage();
   const sendModeForThisMessage = selectedSendMode;
-  const botReplyText = sendModeForThisMessage === "web" || sendModeForThisMessage === "image"
-    ? await getSearchReply(sendModeForThisMessage, userMessageText)
-    : await getReplyFromBackend(userMessageText);
+  let botReplyText = "";
 
-  typingMessageRow.remove();
-  addChatMessage("bot", botReplyText);
+  if (sendModeForThisMessage === "web" || sendModeForThisMessage === "image") {
+    const typingMessageRow = addTypingMessage();
+    botReplyText = await getSearchReply(sendModeForThisMessage, userMessageText);
+    typingMessageRow.remove();
+    addChatMessage("bot", botReplyText);
+  } else {
+    const botMessageRow = addChatMessage("bot", "");
+    botReplyText = await streamReplyFromBackend(userMessageText, botMessageRow);
+  }
+
   speakBotReply(botReplyText);
   moveMascotToBottom();
   swapMascotImage();
@@ -437,6 +570,32 @@ function addChatMessage(senderType, messageText) {
   chatMessagesBox.append(messageRow);
   scrollChatToBottom();
   return messageRow;
+}
+
+function getMessageParagraph(messageRow) {
+  return messageRow?.querySelector(".bubble p") || null;
+}
+
+function appendMessageText(messageRow, nextText) {
+  const messageParagraph = getMessageParagraph(messageRow);
+
+  if (!messageParagraph || !nextText) {
+    return;
+  }
+
+  messageParagraph.textContent += nextText;
+  scrollChatToBottom();
+}
+
+function replaceMessageText(messageRow, nextText) {
+  const messageParagraph = getMessageParagraph(messageRow);
+
+  if (!messageParagraph) {
+    return;
+  }
+
+  messageParagraph.textContent = nextText;
+  scrollChatToBottom();
 }
 
 function addTypingMessage() {

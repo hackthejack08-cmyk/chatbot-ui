@@ -8,6 +8,11 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 UPLOADED_KNOWLEDGE_FILE = BACKEND_ROOT / "storage" / "uploaded_knowledge.jsonl"
 ALLOWED_TEXT_FILES = {".txt", ".md"}
 MAX_CONTEXT_CHARS = 6000
+SEARCH_STOP_WORDS = {
+    "the", "and", "are", "you", "your", "for", "from", "with", "this", "that",
+    "what", "who", "why", "how", "when", "where", "according", "about", "into",
+    "does", "did", "can", "could", "would", "should", "have", "has", "had",
+}
 
 
 def build_retriever():
@@ -71,8 +76,12 @@ def load_uploaded_chunks(session_id: str | None = None) -> list[dict]:
 
     with UPLOADED_KNOWLEDGE_FILE.open("r", encoding="utf-8") as knowledge_file:
         for line in knowledge_file:
+            clean_line = line.lstrip("\ufeff").strip()
+            if not clean_line:
+                continue
+
             try:
-                record = json.loads(line)
+                record = json.loads(clean_line)
             except json.JSONDecodeError:
                 continue
 
@@ -100,13 +109,17 @@ def clear_uploaded_knowledge(session_id: str):
     kept_lines = []
     with UPLOADED_KNOWLEDGE_FILE.open("r", encoding="utf-8") as knowledge_file:
         for line in knowledge_file:
+            clean_line = line.lstrip("\ufeff").strip()
+            if not clean_line:
+                continue
+
             try:
-                record = json.loads(line)
+                record = json.loads(clean_line)
             except json.JSONDecodeError:
                 continue
 
             if record.get("session_id") != safe_session_id:
-                kept_lines.append(line)
+                kept_lines.append(clean_line + "\n")
 
     UPLOADED_KNOWLEDGE_FILE.write_text("".join(kept_lines), encoding="utf-8")
 
@@ -115,13 +128,20 @@ def get_search_words(user_message: str) -> set[str]:
     return {
         word.lower()
         for word in re.findall(r"[a-zA-Z0-9_]+", user_message)
-        if len(word) > 2
+        if len(word) > 2 and word.lower() not in SEARCH_STOP_WORDS
     }
 
 
 def get_context(knowledge_chunks, user_message: str, session_id: str | None = None) -> str:
+    # Re-read the project knowledge files on every chat request.
+    # This keeps beginner edits simple: save the txt/md file, ask again, and
+    # Byte-Bot can use the new content without rebuilding the whole project.
+    current_file_chunks = build_retriever()
     uploaded_chunks = load_uploaded_chunks(session_id)
-    all_chunks = list(knowledge_chunks or []) + uploaded_chunks
+    all_chunks = current_file_chunks + uploaded_chunks
+
+    if not current_file_chunks and knowledge_chunks:
+        all_chunks = list(knowledge_chunks or []) + uploaded_chunks
 
     if not all_chunks:
         return "No extra knowledge loaded yet."
