@@ -5,4 +5,4 @@
 // window.BYTEBOT_BACKEND_URL = "https://chatbot-ui-m3n0.onrender.com";
 //
 // Local development should stay blank so the UI uses http://127.0.0.1:8010.
-window.BYTEBOT_BACKEND_URL = "https://chatbot-ui-m3n0.onrender.com";
+window.BYTEBOT_BACKEND_URL = "";

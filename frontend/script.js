@@ -174,6 +174,12 @@ async function streamReplyFromBackend(userMessageText, botMessageRow) {
 
     if (!chatResponse.ok) {
       const errorText = await chatResponse.text();
+      if (chatResponse.status === 404) {
+        const fallbackReply = await getReplyFromBackend(userMessageText);
+        replaceMessageText(botMessageRow, fallbackReply);
+        return fallbackReply;
+      }
+
       throw new Error(errorText || `Backend returned ${chatResponse.status}`);
     }
 

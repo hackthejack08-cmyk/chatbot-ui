@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 import os
 from pathlib import Path
 
@@ -181,7 +181,7 @@ async def stream_assistant_reply(user_message: str, user_name: str, session_id: 
         full_reply_parts.append(error_reply)
         yield error_reply
 
-    full_reply = "".join(full_reply_parts).strip()
+        full_reply = "".join(full_reply_parts).strip()
     if full_reply:
         await save_chat_message(session_id, "assistant", full_reply)
 
