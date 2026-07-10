@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from backend.app.database import get_database
 
 
-MAX_MONGO_HISTORY_MESSAGES = 10
+MAX_MONGO_HISTORY_MESSAGES = 40
 
 
 async def get_recent_messages_mongo(session_id: str, limit: int = MAX_MONGO_HISTORY_MESSAGES):
