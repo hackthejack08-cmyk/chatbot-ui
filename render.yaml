@@ -19,4 +19,4 @@ services:
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "10080"
       - key: FRONTEND_ORIGINS
-        sync: false
+        value: https://chatbot-ui-git-main-gentlederr099.vercel.app,https://chatbot-ui-puce-psi-27.vercel.app,http://127.0.0.1:8028,http://localhost:8028,null

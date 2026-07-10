@@ -43,7 +43,7 @@ FRONTEND_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
         "FRONTEND_ORIGINS",
-        "http://127.0.0.1:8028,http://localhost:8028,null",
+        "http://127.0.0.1:8028,http://localhost:8028,https://chatbot-ui-git-main-gentlederr099.vercel.app,https://chatbot-ui-puce-psi-27.vercel.app,null",
     ).split(",")
     if origin.strip()
 ]
